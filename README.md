@@ -1,6 +1,6 @@
 # mizchi/json
 
-simple json parser
+simple json parser with simple data structure
 
 ```bash
 $ moon add mizchi/json
@@ -14,19 +14,35 @@ fn main {
     #| {
     #|  "items": [1],
     #|  "nested": {
-    #|    "items": [1, 2, 3, 4.5],
+    #|    "items": [1, 2, 3, 4.5]
     #|  },
     #|  "items2": [{"a": 1}, {"b": 2}],
     #|  "next": null
     #| }
-  let parsed = @json.parse(input).unwrap()
-  debug(parsed)
-  // => Object(List::[("items", Array(List::[IntNumber(1)])), ("nested", Object(List::[("items", Array(List::[IntNumber(1), IntNumber(2), IntNumber(3), DoubleNumber(4.5)]))])), ("items2", Array(List::[Object(List::[("a", IntNumber(1))]), Object(List::[("b", IntNumber(2))])])), ("next", Null)])
 
-  // stringify
+  let parsed = @json.parse(input).unwrap()
+  debug(parsed) // debuggable
   println(parsed.stringify())
-  // readable stringify
+  //=> {items:[1],nested:{items:[1,2,3,4.5]},items2:[{a:1},{b:2}],next:null}
+
+  // readable json like JSON.stringify(obj, null, 2)
   println(parsed.stringify(~spaces=2, ~newline=true))
+
+  // build json tree
+  let data = @json.JSONValue::Object(
+    List::[
+      ("key", @json.JSONValue::String("val")),
+      ("items", @json.JSONValue::Array(List::[@json.JSONValue::IntNumber(1)])),
+    ],
+  )
+  // you can stringify
+  println(data.stringify())
+
+  // handle parse error
+  match @json.parse("{}}") {
+    Err(err) => debug(err)
+    _ => println("unreachable")
+  }
 }
 ```
 
