@@ -30,6 +30,16 @@ fn main {
 }
 ```
 
+## Related works
+
+- https://mooncakes.io/docs/#/peter-jerry-ye/json/
+
+## TODO
+
+- parser generator
+- typescript codegen
+- wit codegen
+
 ## LICENSE
 
 MIT
