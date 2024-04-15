@@ -1,6 +1,6 @@
 # mizchi/json
 
-hobby json parser for my moonbit study (yet)
+simple json parser
 
 ```bash
 $ moon add mizchi/json
@@ -20,7 +20,6 @@ fn main {
     #|  "next": null
     #| }
   let parsed = @json.parse(input).unwrap()
-
   debug(parsed)
   // => Object(List::[("items", Array(List::[IntNumber(1)])), ("nested", Object(List::[("items", Array(List::[IntNumber(1), IntNumber(2), IntNumber(3), DoubleNumber(4.5)]))])), ("items2", Array(List::[Object(List::[("a", IntNumber(1))]), Object(List::[("b", IntNumber(2))])])), ("next", Null)])
 
@@ -30,12 +29,6 @@ fn main {
   println(parsed.stringify(~spaces=2, ~newline=true))
 }
 ```
-
-## TODO
-
-- [ ] Valid error message
-- [ ] parse expression `1`
-- [ ] Mutation
 
 ## LICENSE
 
