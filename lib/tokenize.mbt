@@ -52,7 +52,7 @@ pub fn tokenize(input: String) -> List[String] {
   if buf.length() > 0 {
     eat()
   }
-  println("tokens \(tokens)");
+  // println("tokens \(tokens)");
   return tokens.to_list()
 }
 

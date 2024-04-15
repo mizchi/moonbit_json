@@ -22,8 +22,10 @@ pub enum JSONValue {
 pub enum ParseError {
   OutOfRange
   ExpectEOF
-  ExpectToken(String)
+  ExpectToken(String) // token
+  // ExpectTokenButGot(String, String)
   Message(String)
+  UnknownExpr(String)
 } derive(Debug, Eq)
 
 pub fn parse(input: String) -> Result[JSONValue, ParseError] {
@@ -42,65 +44,62 @@ pub fn parse(input: String) -> Result[JSONValue, ParseError] {
 }
 
 fn parse_literal(tokens: List[String], idx: Int) -> Result[(JSONValue, Int), ParseError] {
-  // if (tokens.length() <= idx) {
-  //   return Err(ParseError::OutOfRange)
-  // }
   match tokens.nth(idx) {
     None => {
-      // Err(ParseError::OutOfRange)
       let len = tokens.length()
       println("out of range \(idx) in \(len)")
       Err(ParseError::Message("out of range"))
     }
     Some(expr) => {
-      let first = expr.get(0)
-      let last = expr.get(expr.length() - 1)
-      if expr == "{" {
-        match parse_object(tokens, idx) {
-          Ok((members, end)) => {
-            return Ok((JSONValue::Object(members), end + 1))
-          }
-          Err(reason) => {
-            return Err(reason)
-          }
-        }
-      }
-      if expr == "[" {
-        match parse_array(tokens, idx) {
-          Ok((items, end)) => {
-            return Ok((JSONValue::Array(items), end + 1))
-          }
-          Err(error) => {
-            return Err(error)
+      match expr {
+        "{" => {
+          match parse_object(tokens, idx) {
+            Ok((members, end)) => {
+              return Ok((JSONValue::Object(members), end + 1))
+            }
+            Err(reason) => {
+              return Err(reason)
+            }
           }
         }
-      }
-      if expr == "null" {
-        return Ok((JSONValue::Null, idx + 1))
-      }
-      // println("parse_literal \(start)")
-      if first == '"' && last == '"' {
-        let mut s = ""
-        for i = 1; i < expr.length() - 1; i = i + 1 {
-          s += expr.get(i).to_string()
+        "[" => {
+          match parse_array(tokens, idx) {
+            Ok((items, end)) => {
+              return Ok((JSONValue::Array(items), end + 1))
+            }
+            Err(error) => {
+              return Err(error)
+            }
+          }
         }
-        // let value = expr.to_bytes().sub_string(1, expr.length() - 2)
-        return Ok((JSONValue::String(s), idx + 1))
+        "null" => {
+          return Ok((JSONValue::Null, idx + 1))
+        }
+        _ => {
+          // string
+          if expr.get(0) == '"' {
+            let mut key = ""
+            for i = 1; i < expr.length() - 1; i = i + 1 {
+              key += expr.get(i).to_string()
+            }
+            return Ok((JSONValue::String(key), idx + 1))
+          }
+          // int or double
+          match @strconv.parse_int(expr) {
+            Ok(v) => return Ok((JSONValue::IntNumber(v), idx + 1))
+            _ => {
+              // or double
+              let double = @strconv.parse_double(expr)
+              if double.is_ok() {
+                return Ok((JSONValue::DoubleNumber(double.unwrap()), idx + 1))
+              }
+            }
+          }
+          Err(ParseError::UnknownExpr(expr))
+        }
       }
-      let int = @strconv.parse_int(expr)
-      if (int.is_ok()) {
-        // println("int found")
-        return Ok((JSONValue::IntNumber(int.unwrap()), idx + 1))
-      }
-
-      let double = @strconv.parse_double(expr)
-      if double.is_ok() {
-        return Ok((JSONValue::DoubleNumber(double.unwrap()), idx + 1))
-      }
-      Err(ParseError::ExpectToken(expr))
     }
   }
-  // let expr = tokens.nth(start)
 }
 
 fn parse_object(tokens: List[String], start: Int) -> Result[(List[(String, JSONValue)], Int), ParseError] {
@@ -118,10 +117,9 @@ fn parse_object(tokens: List[String], start: Int) -> Result[(List[(String, JSONV
       while cur < tokens.length() {
         let next_opt = tokens.nth(cur)
         if next_opt.is_empty() {
-          return Err(ExpectToken("}"))
+          return Err(ExpectToken("} or ,"))
         }
         let next = next_opt.unwrap()
-        
         if next == "," {
           // validate next is not "}"
           // let next_opt = tokens.nth(cur + 1)
@@ -139,7 +137,6 @@ fn parse_object(tokens: List[String], start: Int) -> Result[(List[(String, JSONV
         if next == "}" {
           break
         }
-
         let key = next
         let colon_opt = tokens.nth(cur + 1)
         if colon_opt.is_empty() {
@@ -163,18 +160,15 @@ fn parse_object(tokens: List[String], start: Int) -> Result[(List[(String, JSONV
           }
         }
       }
-
-      // check end is "}"
-      let end = tokens.nth(cur)
-      if end.is_empty() {
-        return Err(ParseError::OutOfRange)
-      }
-      match end.unwrap() {
-        "}" => {
+      match tokens.nth(cur) {
+        Some ("}") => {
           Ok((items.to_list(), cur))
         }
-        _ => {
-          return Err(ExpectToken("}"))
+        Some (_) => {
+          Err(ExpectToken("}"))
+        }
+        None => {
+          Err(ExpectToken("} or ,"))
         }
       }
     }
@@ -193,7 +187,6 @@ fn parse_array(tokens: List[String], start: Int) -> Result[(List[JSONValue], Int
     return Err(ParseError::ExpectToken("["))
   }
   let mut cur = start + 1 // skip "["
-
   while cur < tokens.length() {
     let next_opt = tokens.nth(cur)
     if next_opt.is_empty() {
@@ -224,11 +217,10 @@ fn parse_array(tokens: List[String], start: Int) -> Result[(List[JSONValue], Int
       }
     }
   }
-
   // check end is "]"
   let end = tokens.nth(cur)
   if end.is_empty() {
-    return Err(ParseError::OutOfRange)
+    return Err(ParseError::ExpectEOF)
   }
   match end.unwrap() {
     "]" => {
@@ -238,6 +230,20 @@ fn parse_array(tokens: List[String], start: Int) -> Result[(List[JSONValue], Int
       return Err(ExpectToken("]"))
     }
   }
+}
+
+test "parse null" {
+  @assertion.assert_eq(
+    parse("null").unwrap(),
+    JSONValue::Null
+  )?
+}
+
+test "parse string" {
+  @assertion.assert_eq(
+    parse("\"hi\"").unwrap(),
+    JSONValue::String("hi")
+  )?
 }
 
 test "parse int" {
@@ -280,6 +286,16 @@ test "parse multi items object" {
   )?
 }
 
+test "parse nested object" {
+  @assertion.assert_eq(
+    parse("{ \"key\": { \"v\": 1 } }").unwrap(),
+    JSONValue::Object(List::[
+      ("key", JSONValue::Object(List::[
+        ("v", JSONValue::IntNumber(1))
+      ]))
+    ])
+  )?
+}
 
 test "parse blank array" {
   @assertion.assert_eq(
@@ -321,6 +337,34 @@ test "parse error : expect eof" {
     Err(ParseError::ExpectEOF)
   )?
 }
+
+test "parse error : expect eof" {
+  @assertion.assert_eq(
+    parse(
+      #| 1,
+    ),
+    Err(ParseError::ExpectEOF)
+  )?
+}
+
+test "parse error : invalid object" {
+  @assertion.assert_eq(
+    parse(
+      #| {
+    ),
+    Err(ParseError::ExpectToken("} or ,"))
+  )?
+}
+
+// test "parse error : expect object end" {
+//   @assertion.assert_eq(
+//     parse(
+//       #| { "v": 1
+//     ),
+//     Err(ParseError::ExpectToken("}"))
+//   )?
+// }
+
 
 // test "parse error : out of range" {
 //   @assertion.assert_eq(
