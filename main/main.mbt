@@ -3,10 +3,10 @@ fn main {
     #| {
     #|  "items": [1],
     #|  "nested": {
-    #|    "items": [1, 2, 3, 4.5],
+    #|    "items": [1, 2, 3, 4.5]
     #|  },
     #|  "items2": [{"a": 1}, {"b": 2}],
-    #|  "next": null,
+    #|  "next": null
     #| }
   let parsed = @lib.parse(input).unwrap()
   debug(parsed)
