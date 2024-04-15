@@ -1,6 +1,6 @@
 # mizchi/json
 
-hobby json parser (yet)
+hobby json parser for my moonbit study (yet)
 
 ```bash
 $ moon add mizchi/json
