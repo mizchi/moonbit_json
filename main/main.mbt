@@ -1,3 +1,31 @@
+struct Data {
+  x : Int
+  y : Bool
+  z : String
+} derive(Debug, Show)
+
+// NOTE: this is imperfect. I need to get members by refrection
+fn to_members(self : Data) -> Array[(String, @lib.ToJson)] {
+  [("x", self.x), ("y", self.y), ("z", self.z)]
+}
+
+fn Data::write_json_string(self : Data, buf : Buffer) -> Unit {
+  let members = to_members(self)
+  buf.write_string("{")
+  members.iteri(
+    fn(i, item) {
+      let (key, val) = item
+      buf.write_string(key)
+      buf.write_string(": ")
+      val.write_json_string(buf)
+      if i < members.length() - 1 {
+        buf.write_string(", ")
+      }
+    },
+  )
+  buf.write_string("}")
+}
+
 fn main {
   let input =
     #| {
@@ -12,34 +40,15 @@ fn main {
   let parsed = @lib.parse(input).unwrap()
   println(parsed.stringify(~spaces=2, ~newline=true))
 
-  // debug(parsed) // debuggable
-  // println(parsed.stringify())
-  // //=> {items:[1],nested:{items:[1,2,3,4.5]},items2:[{a:1},{b:2}],next:null}
-
-  // // readable json like JSON.stringify(obj, null, 2)
-  // println(parsed.stringify(~spaces=2, ~newline=true))
-
-  // // build json tree
-  // let data = @lib.JSONValue::Object(
-  //   List::[
-  //     ("key", @lib.JSONValue::String("val")),
-  //     ("items", @lib.JSONValue::Array(List::[@lib.JSONValue::IntNumber(1)])),
-  //   ],
-  // )
-  // // you can stringify
-  // println(data.stringify())
-
-  // // handle parse error
-  // match @lib.parse("{}}") {
-  //   Err(err) => debug(err)
-  //   _ => println("unreachable")
-  // }
-}
-
-let is_release = false
-
-fn debug_log[T : Debug](v : T) -> Unit {
-  if is_release {
-    debug(v)
-  }
+  // array
+  let x = [1, 2, 3]
+  // to_json(x)
+  println(@lib.to_json(x))
+  // map
+  let map : @map.Map[String, Int] = @map.Map::[("a", 1), ("b", 2), ("c", 3)]
+  println(@lib.to_json(map))
+  // custom data     
+  let data : Data = { x: 1, y: true, z: "hello" }
+  let res3 = @lib.to_json(data)
+  println(res3)
 }
