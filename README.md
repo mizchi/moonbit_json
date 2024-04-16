@@ -6,6 +6,16 @@ simple json parser with simple data structure
 $ moon add mizchi/json
 ```
 
+moon.pkg.json
+
+```json
+{
+  "import": [
+    "mizchi/json"
+  ]
+}
+```
+
 ## Usage
 
 ```rust
