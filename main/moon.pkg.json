@@ -1,4 +1,9 @@
 {
   "is_main": true,
-  "import": ["mizchi/json/lib"]
+  "import": [
+    {
+      "path": "mizchi/json",
+      "alias": "json"
+    }
+  ]
 }

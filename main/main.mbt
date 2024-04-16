@@ -5,7 +5,7 @@ struct Data {
 } derive(Debug, Show)
 
 // NOTE: this is imperfect. I need to get members by refrection
-fn to_members(self : Data) -> Array[(String, @lib.ToJson)] {
+fn to_members(self : Data) -> Array[(String, @json.ToJson)] {
   [("x", self.x), ("y", self.y), ("z", self.z)]
 }
 
@@ -37,19 +37,19 @@ fn main {
     #|  "next": null
     #| }
 
-  let parsed = @lib.parse(input).unwrap()
-  println(parsed.stringify(~spaces=2, ~newline=true))
+  let parsed = @json.parse(input).unwrap()
+  println(parsed.stringify(spaces=2, newline=true))
 
   // array
   let x = [1, 2, 3]
   // to_json(x)
-  println(@lib.to_json(x))
+  println(@json.to_json(x))
   // map
   let map : @map.Map[String, Int] = @map.Map::[("a", 1), ("b", 2), ("c", 3)]
-  println(@lib.to_json(map))
+  println(@json.to_json(map))
   // custom data
   let data : Data = { x: 1, y: true, z: "hello" }
-  let res3 = @lib.to_json(data)
+  let res3 = @json.to_json(data)
   println(res3)
   // let m = @hashmap.HashMap::[("a", 1), ("b", 2), ("c", 3)]
   // let x = @map.from_array(m)
