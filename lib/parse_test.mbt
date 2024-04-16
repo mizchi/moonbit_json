@@ -23,13 +23,13 @@ test "parse double" {
 }
 
 test "parse blank object" {
-  @assertion.assert_eq(parse("{}"), Ok(JSONValue::Object(List::[])))?
+  @assertion.assert_eq(parse("{}"), Ok(JSONValue::Object([])))?
 }
 
 test "parse 1 item object" {
   @assertion.assert_eq(
     parse("{ \"key\": \"val\" }"),
-    Ok(JSONValue::Object(List::[("key", JSONValue::String("val"))])),
+    Ok(JSONValue::Object([("key", JSONValue::String("val"))])),
   )?
 }
 
@@ -38,7 +38,7 @@ test "parse multi items object" {
     parse("{ \"key\": \"val\", \"x\": \"y\" }"),
     Ok(
       JSONValue::Object(
-        List::[("key", JSONValue::String("val")), ("x", JSONValue::String("y"))],
+        [("key", JSONValue::String("val")), ("x", JSONValue::String("y"))],
       ),
     ),
   )?
@@ -49,9 +49,7 @@ test "parse nested object" {
     parse("{ \"key\": { \"v\": 1 } }"),
     Ok(
       JSONValue::Object(
-        List::[
-          ("key", JSONValue::Object(List::[("v", JSONValue::IntNumber(1))])),
-        ],
+        [("key", JSONValue::Object([("v", JSONValue::IntNumber(1))]))],
       ),
     ),
   )?
@@ -64,7 +62,7 @@ test "parse blank array" {
       #| []
       ,
     ),
-    Ok(JSONValue::Array(List::[])),
+    Ok(JSONValue::Array([])),
   )?
 }
 
@@ -75,7 +73,7 @@ test "parse 1 item array" {
       #| [1]
       ,
     ),
-    Ok(JSONValue::Array(List::[JSONValue::IntNumber(1)])),
+    Ok(JSONValue::Array([JSONValue::IntNumber(1)])),
   )?
 }
 
@@ -86,7 +84,7 @@ test "parse 2 items array" {
       #| [1, 2]
       ,
     ).unwrap(),
-    JSONValue::Array(List::[JSONValue::IntNumber(1), JSONValue::IntNumber(2)]),
+    JSONValue::Array([JSONValue::IntNumber(1), JSONValue::IntNumber(2)]),
   )?
 }
 

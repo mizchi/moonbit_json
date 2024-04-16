@@ -34,7 +34,7 @@ pub fn stringify(
       let mut s = "{" + if newline { "\n" } else { "" }
       let pad = if spaces > 0 { " " } else { "" }
       for i = 0; i < o.length(); i = i + 1 {
-        let (k, v) = o.nth(i).unwrap()
+        let (k, v) = o[i]
         let is_last = i == o.length() - 1
         let last = if is_last { "" } else { "," } + if newline {
             "\n"

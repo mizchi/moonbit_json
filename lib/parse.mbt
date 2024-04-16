@@ -5,8 +5,8 @@ pub enum JSONValue {
   Boolean(Bool)
   IntNumber(Int)
   DoubleNumber(Double)
-  Object(List[(String, JSONValue)])
-  Array(List[JSONValue])
+  Object(Array[(String, JSONValue)])
+  Array(Array[JSONValue])
   Null
 } derive(Debug, Eq)
 
@@ -83,7 +83,7 @@ fn parse_literal(
 fn parse_object(
   tokens : List[String],
   start : Int
-) -> Result[(List[(String, JSONValue)], Int), ParseError] {
+) -> Result[(Array[(String, JSONValue)], Int), ParseError] {
   // println("parse_object \(start)")
   match tokens.nth(start) {
     None => return Err(ParseError::OutOfRange(start))
@@ -99,7 +99,7 @@ fn parse_object(
         match tokens.nth(cur) {
           None => return Err(ExpectToken(cur, Array::["}", ",", "\"<key>\""]))
           // maybe blank object
-          Some("}") => return Ok((items.to_list(), cur))
+          Some("}") => return Ok((items.to_list().to_array(), cur))
           // expect string key
           Some(key) => {
             // println("key \(key) \(cur)")
@@ -120,7 +120,7 @@ fn parse_object(
                 items.push((k, v))
                 // peak next token
                 match tokens.nth(end + 1) {
-                  Some("}") => return Ok((items.to_list(), end + 1))
+                  Some("}") => return Ok((items.to_list().to_array(), end + 1))
                   None => return Err(ExpectToken(end + 1, Array::["}", ","]))
                   Some(",") => {
                     cur = end + 2 // { "x": 1 , <here>
@@ -142,7 +142,7 @@ fn parse_object(
 fn parse_array(
   tokens : List[String],
   start : Int
-) -> Result[(List[JSONValue], Int), ParseError] {
+) -> Result[(Array[JSONValue], Int), ParseError] {
   if tokens.nth(start) != Some("[") {
     return Err(ExpectToken(start, Array::["["]))
   }
@@ -151,14 +151,14 @@ fn parse_array(
   while cur < tokens.length() {
     match tokens.nth(cur) {
       None => return Err(ParseError::OutOfRange(cur))
-      Some("]") => return Ok((items.to_list(), cur))
+      Some("]") => return Ok((items.to_list().to_array(), cur))
       Some(_) =>
         match parse_literal(tokens, cur) {
           Err(reason) => return Err(reason)
           Ok((v, end)) => {
             items.push(v)
             match tokens.nth(end + 1) {
-              Some("]") => return Ok((items.to_list(), end + 1))
+              Some("]") => return Ok((items.to_list().to_array(), end + 1))
               Some(",") => {
                 cur = end + 2
                 continue
