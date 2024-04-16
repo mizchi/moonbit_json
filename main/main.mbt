@@ -47,8 +47,10 @@ fn main {
   // map
   let map : @map.Map[String, Int] = @map.Map::[("a", 1), ("b", 2), ("c", 3)]
   println(@lib.to_json(map))
-  // custom data     
+  // custom data
   let data : Data = { x: 1, y: true, z: "hello" }
   let res3 = @lib.to_json(data)
   println(res3)
+  // let m = @hashmap.HashMap::[("a", 1), ("b", 2), ("c", 3)]
+  // let x = @map.from_array(m)
 }

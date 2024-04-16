@@ -30,9 +30,9 @@ fn main {
 
   // build json tree
   let data = @json.JSONValue::Object(
-    List::[
+    [
       ("key", @json.JSONValue::String("val")),
-      ("items", @json.JSONValue::Array(List::[@json.JSONValue::IntNumber(1)])),
+      ("items", @json.JSONValue::Array([@json.JSONValue::IntNumber(1)])),
     ],
   )
   // you can stringify
